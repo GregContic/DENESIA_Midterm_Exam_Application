@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    // Array of products organized by themes
     private $products = [
         'Gadgets' => [
             ['name' => 'Smartphone', 'price' => 800],
@@ -34,9 +35,32 @@ class ProductController extends Controller
         ],
     ];
 
+    // Display the main page with all themes
+    public function index()
+    {
+        return view('products.index', [
+            'themes' => array_keys($this->products)
+        ]);
+    }
+
+    // Show products for a specific theme
     public function showProducts($theme)
     {
-        $products = $this->products[$theme] ?? [];
-        return view('products', ['theme' => $theme, 'products' => $products]);
+        if (!array_key_exists($theme, $this->products)) {
+            return redirect()->route('products.index')
+                           ->with('error', 'Theme not found!');
+        }
+
+        $products = $this->products[$theme];
+        $totalProducts = count($products);
+        $averagePrice = number_format(array_sum(array_column($products, 'price')) / $totalProducts, 2);
+
+        return view('products.show', [
+            'theme' => $theme,
+            'products' => $products,
+            'themes' => array_keys($this->products),
+            'totalProducts' => $totalProducts,
+            'averagePrice' => $averagePrice
+        ]);
     }
 }
